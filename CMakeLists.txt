@@ -35,6 +35,11 @@ add_executable(safeopt_example
 )
 target_link_libraries(safeopt_example safeopt_cpp)
 
+add_executable(safeopt_demo
+    examples/comprehensive_demo.cpp
+)
+target_link_libraries(safeopt_demo safeopt_cpp)
+
 # Enable testing
 enable_testing()
 
