@@ -57,6 +57,16 @@ public:
      * @return Next point to evaluate
      */
     Eigen::VectorXd getMaximum(const Eigen::VectorXd& context = Eigen::VectorXd());
+    
+    /**
+     * @brief Run SafeOpt optimization and get next point
+     * 
+     * @param context Optional context vector
+     * @param ucb_only Whether to use only UCB criterion (skip expanders)
+     * @return Next point to evaluate
+     */
+    Eigen::VectorXd optimize(const Eigen::VectorXd& context = Eigen::VectorXd(), 
+                           bool ucb_only = false);
 
     /**
      * @brief Compute the safe set, expanders, and maximizers
@@ -159,6 +169,14 @@ protected:
      * @return True if point can expand safe set
      */
     bool canExpandSafeSet(int point_idx, int gp_idx) const;
+    
+    /**
+     * @brief Check if point can expand safe set (check all GPs)
+     * 
+     * @param point_idx Index of point to check
+     * @return True if point can expand safe set
+     */
+    bool canExpandSafeSet(int point_idx) const;
 
     /**
      * @brief Get acquisition function value for expander selection
@@ -167,6 +185,32 @@ protected:
      * @return Acquisition value (higher is better)
      */
     double getAcquisitionValue(int point_idx) const;
+    
+    /**
+     * @brief Get Upper Confidence Bound (UCB) value
+     * 
+     * @param point_idx Index of point
+     * @param gp_idx Index of GP (default: 0 for objective)
+     * @return UCB value
+     */
+    double getUCB(int point_idx, int gp_idx = 0) const;
+    
+    /**
+     * @brief Get Lower Confidence Bound (LCB) value
+     * 
+     * @param point_idx Index of point
+     * @param gp_idx Index of GP (default: 0 for objective)
+     * @return LCB value
+     */
+    double getLCB(int point_idx, int gp_idx = 0) const;
+    
+    /**
+     * @brief Get Safe Upper Confidence Bound (only for safe points)
+     * 
+     * @param point_idx Index of point
+     * @return Safe UCB value, or -inf if unsafe
+     */
+    double getSafeUCB(int point_idx) const;
 };
 
 } // namespace safeopt

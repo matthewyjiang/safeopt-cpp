@@ -59,14 +59,21 @@ add_executable(test_safeopt
 )
 target_link_libraries(test_safeopt safeopt_cpp)
 
-# Add GP demo executable
-add_executable(test_gp_demo
-    test_gp_demo.cpp
+# Add 3D optimization test
+add_executable(test_3d_optimization
+    tests/test_3d_optimization.cpp
 )
-target_link_libraries(test_gp_demo gp_lib)
+target_link_libraries(test_3d_optimization safeopt_cpp)
 
-# Add test
+# Add GP demo executable (commented out - file doesn't exist yet)
+# add_executable(test_gp_demo
+#     test_gp_demo.cpp
+# )
+# target_link_libraries(test_gp_demo gp_lib)
+
+# Add tests
 add_test(NAME SafeOptTests COMMAND test_safeopt)
+add_test(NAME SafeOpt3DTest COMMAND test_3d_optimization)
 
 # Install targets
 install(TARGETS safeopt_cpp
