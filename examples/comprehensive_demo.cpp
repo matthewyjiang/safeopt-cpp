@@ -1,4 +1,5 @@
 #include "safeopt/safeopt.hpp"
+#include "rbf_kernel.h"
 #include <iostream>
 #include <iomanip>
 
@@ -21,17 +22,18 @@ int main() {
         }
         std::cout << "   ✓ Grid generation working" << std::endl << std::endl;
 
-        // 2. Demonstrate Gaussian Process stub
-        std::cout << "2. Testing Gaussian Process stub:" << std::endl;
-        auto gp = std::make_shared<gp::GaussianProcess>();
+        // 2. Demonstrate Gaussian Process
+        std::cout << "2. Testing Gaussian Process:" << std::endl;
+        auto kernel = std::make_unique<gp::RBFKernel>(1.0, 1.0);
+        auto gp = std::make_shared<gp::GaussianProcess>(std::move(kernel), 1e-6);
         
         Eigen::MatrixXd X_train(3, 1);
         X_train << -1.0, 0.0, 1.0;
         Eigen::VectorXd Y_train(3);
         Y_train << 0.5, 1.0, 0.3;
         
-        gp->setData(X_train, Y_train);
-        std::cout << "   Training data set: " << gp->getX().rows() << " points" << std::endl;
+        gp->fit(X_train, Y_train);
+        std::cout << "   Training data set: " << X_train.rows() << " points" << std::endl;
         
         Eigen::MatrixXd X_test(2, 1);
         X_test << -0.5, 0.5;

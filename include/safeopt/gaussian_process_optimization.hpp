@@ -4,7 +4,8 @@
 #include <vector>
 #include <memory>
 #include <functional>
-#include "safeopt/gp_stub.hpp"
+#include "gaussian_process.h"
+#include "rbf_kernel.h"
 
 namespace safeopt {
 
@@ -133,6 +134,11 @@ protected:
                      const Eigen::VectorXd& x,
                      double y,
                      const Eigen::VectorXd& context = Eigen::VectorXd());
+
+    /**
+     * @brief Get training data for a specific GP
+     */
+    std::pair<Eigen::MatrixXd, Eigen::VectorXd> getGPData(size_t gp_index) const;
 
     /**
      * @brief Compute automatic scaling from GP kernels

@@ -11,6 +11,15 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3")
 # Find required packages
 find_package(Eigen3 REQUIRED)
 
+# Fetch GP library
+include(FetchContent)
+FetchContent_Declare(
+    gaussian_process
+    GIT_REPOSITORY https://github.com/matthewyjiang/gaussian-process.git
+    GIT_TAG main
+)
+FetchContent_MakeAvailable(gaussian_process)
+
 # Add include directories
 include_directories(include)
 include_directories(${EIGEN3_INCLUDE_DIR})
@@ -27,6 +36,7 @@ add_library(safeopt_cpp
 # Link libraries
 target_link_libraries(safeopt_cpp
     Eigen3::Eigen
+    gp_lib
 )
 
 # Add executable for examples
@@ -48,6 +58,12 @@ add_executable(test_safeopt
     tests/test_all.cpp
 )
 target_link_libraries(test_safeopt safeopt_cpp)
+
+# Add GP demo executable
+add_executable(test_gp_demo
+    test_gp_demo.cpp
+)
+target_link_libraries(test_gp_demo gp_lib)
 
 # Add test
 add_test(NAME SafeOptTests COMMAND test_safeopt)

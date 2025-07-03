@@ -1,7 +1,8 @@
 #include "safeopt/gaussian_process_optimization.hpp"
 #include "safeopt/safe_opt.hpp"
 #include "safeopt/swarm_optimization.hpp"
-#include "safeopt/gp_stub.hpp"
+#include "gaussian_process.h"
+#include "rbf_kernel.h"
 #include <cassert>
 #include <iostream>
 #include <memory>
@@ -12,7 +13,8 @@ using namespace safeopt;
 void test_basic_construction() {
     std::cout << "Testing basic construction..." << std::endl;
     
-    auto gp = std::make_shared<gp::GaussianProcess>();
+    auto kernel = std::make_unique<gp::RBFKernel>(1.0, 1.0);
+    auto gp = std::make_shared<gp::GaussianProcess>(std::move(kernel), 1e-6);
     std::vector<std::shared_ptr<gp::GaussianProcess>> gps = {gp};
     std::vector<double> fmin = {0.0};
     
@@ -25,21 +27,32 @@ void test_basic_construction() {
 void test_data_management() {
     std::cout << "Testing data management..." << std::endl;
     
-    auto gp = std::make_shared<gp::GaussianProcess>();
+    auto kernel = std::make_unique<gp::RBFKernel>(1.0, 1.0);
+    auto gp = std::make_shared<gp::GaussianProcess>(std::move(kernel), 1e-6);
     
     // Initialize with some data
     Eigen::MatrixXd X(2, 1);
     X << 0.0, 1.0;
     Eigen::VectorXd Y(2);
     Y << 1.0, 2.0;
-    gp->setData(X, Y);
+    gp->fit(X, Y);
     
     std::vector<std::shared_ptr<gp::GaussianProcess>> gps = {gp};
     std::vector<double> fmin = {0.0};
     
     GaussianProcessOptimization opt(gps, fmin);
     
-    assert(opt.getT() == 2);  // Two initial data points
+    // Since we're not initializing via the wrapper, we need to add data through the wrapper
+    Eigen::VectorXd x_point(1);
+    Eigen::VectorXd y_values(1);
+    x_point << 0.0;
+    y_values << 1.0;
+    opt.addNewDataPoint(x_point, y_values);
+    x_point << 1.0;
+    y_values << 2.0;
+    opt.addNewDataPoint(x_point, y_values);
+    
+    assert(opt.getT() == 2);  // Two data points added
     
     // Add a new data point
     Eigen::VectorXd x_new(1);
@@ -60,20 +73,28 @@ void test_data_management() {
 void test_safe_opt_construction() {
     std::cout << "Testing SafeOpt construction..." << std::endl;
     
-    auto gp = std::make_shared<gp::GaussianProcess>();
+    auto kernel = std::make_unique<gp::RBFKernel>(1.0, 1.0);
+    auto gp = std::make_shared<gp::GaussianProcess>(std::move(kernel), 1e-6);
     
     // Initialize with safe data
     Eigen::MatrixXd X(1, 1);
     X << 0.0;
     Eigen::VectorXd Y(1);
     Y << 1.0;
-    gp->setData(X, Y);
+    gp->fit(X, Y);
     
     std::vector<std::shared_ptr<gp::GaussianProcess>> gps = {gp};
     std::vector<double> fmin = {0.0};
     std::vector<std::pair<double, double>> bounds = {{-2.0, 2.0}};
     
     SafeOpt opt(gps, fmin, bounds);
+    
+    // Add initial safe data through the wrapper
+    Eigen::VectorXd x_safe(1);
+    Eigen::VectorXd y_safe(1);
+    x_safe << 0.0;
+    y_safe << 1.0;
+    opt.addNewDataPoint(x_safe, y_safe);
     
     assert(opt.getT() == 1);
     assert(opt.getInputs().rows() > 0);  // Should have discretized inputs

@@ -72,18 +72,32 @@ void GaussianProcessOptimization::addNewDataPoint(
     // Add context if provided
     Eigen::VectorXd x_with_context = addContext(x, context);
 
-    // Add to each GP
-    for (size_t i = 0; i < gps_.size(); ++i) {
-        addDataPoint(gps_[i], x_with_context, y[i], context);
+    // Update internal data matrices first
+    int old_size = x_.rows();
+    
+    // Initialize matrices if this is the first data point
+    if (old_size == 0) {
+        x_ = Eigen::MatrixXd(1, x_with_context.size());
+        y_ = Eigen::MatrixXd(1, gps_.size());
+        x_.row(0) = x_with_context;
+        y_.row(0) = y.transpose();
+    } else {
+        x_.conservativeResize(old_size + 1, Eigen::NoChange);
+        y_.conservativeResize(old_size + 1, Eigen::NoChange);
+        x_.row(old_size) = x_with_context;
+        y_.row(old_size) = y.transpose();
     }
 
-    // Update internal data matrices
-    int old_size = x_.rows();
-    x_.conservativeResize(old_size + 1, Eigen::NoChange);
-    y_.conservativeResize(old_size + 1, Eigen::NoChange);
-    
-    x_.row(old_size) = x_with_context;
-    y_.row(old_size) = y.transpose();
+    // Add to each GP
+    for (size_t i = 0; i < gps_.size(); ++i) {
+        if (old_size == 0) {
+            // First data point - fit the GP
+            gps_[i]->fit(x_, y_.col(i));
+        } else {
+            // Additional data point - use incremental learning
+            addDataPoint(gps_[i], x_with_context, y[i], context);
+        }
+    }
     
     num_samples_++;
 }
@@ -93,17 +107,20 @@ void GaussianProcessOptimization::removeLastDataPoint() {
         throw std::runtime_error("No data points to remove");
     }
 
-    // Remove from each GP
-    for (auto& gp : gps_) {
-        gp->removeLastDataPoint();
-    }
-
     // Update internal data matrices
     int new_size = x_.rows() - 1;
     x_.conservativeResize(new_size, Eigen::NoChange);
     y_.conservativeResize(new_size, Eigen::NoChange);
     
     num_samples_--;
+    
+    // Since the real GP library doesn't support removing data points,
+    // we need to refit all GPs with the reduced data
+    for (size_t i = 0; i < gps_.size(); ++i) {
+        if (new_size > 0) {
+            gps_[i]->fit(x_, y_.col(i));
+        }
+    }
 }
 
 void GaussianProcessOptimization::setBounds(
@@ -112,34 +129,11 @@ void GaussianProcessOptimization::setBounds(
 }
 
 void GaussianProcessOptimization::getInitialXY() {
-    if (!gp_ || gp_->getX().rows() == 0) {
-        // No initial data
-        x_ = Eigen::MatrixXd(0, 0);
-        y_ = Eigen::MatrixXd(0, 0);
-        return;
-    }
-
-    // Get data from first GP
-    x_ = gp_->getX();
-    int n_data = x_.rows();
-    int n_gps = gps_.size();
-    
-    y_ = Eigen::MatrixXd(n_data, n_gps);
-
-    // Collect data from all GPs
-    for (size_t i = 0; i < gps_.size(); ++i) {
-        const auto& gp_x = gps_[i]->getX();
-        const auto& gp_y = gps_[i]->getY();
-        
-        // Verify that all GPs have the same input data
-        if (!x_.isApprox(gp_x)) {
-            throw std::runtime_error("All GPs must have the same input data");
-        }
-        
-        y_.col(i) = gp_y;
-    }
-    
-    num_samples_ = n_data;
+    // Since the real GP library doesn't expose training data,
+    // we'll initialize with empty data and let users add data through addNewDataPoint
+    x_ = Eigen::MatrixXd(0, 0);
+    y_ = Eigen::MatrixXd(0, 0);
+    num_samples_ = 0;
 }
 
 Eigen::VectorXd GaussianProcessOptimization::addContext(
@@ -167,7 +161,16 @@ void GaussianProcessOptimization::addDataPoint(
     double y,
     const Eigen::VectorXd& context) {
     
-    gp->addDataPoint(x, y);
+    gp->add_data_point(x, y);
+}
+
+std::pair<Eigen::MatrixXd, Eigen::VectorXd> GaussianProcessOptimization::getGPData(size_t gp_index) const {
+    if (gp_index >= gps_.size()) {
+        throw std::out_of_range("GP index out of range");
+    }
+    
+    // Return our locally stored data for the requested GP
+    return {x_, y_.col(gp_index)};
 }
 
 void GaussianProcessOptimization::computeAutoScaling() {

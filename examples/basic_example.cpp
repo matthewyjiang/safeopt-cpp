@@ -1,4 +1,5 @@
 #include "safeopt/safeopt.hpp"
+#include "rbf_kernel.h"
 #include <iostream>
 #include <memory>
 
@@ -11,15 +12,16 @@ int main() {
         // Create a simple 1D optimization problem
         std::vector<std::pair<double, double>> bounds = {{-2.0, 2.0}};
         
-        // Create a stub GP (in practice, this would use the real GP library)
-        auto gp = std::make_shared<gp::GaussianProcess>();
+        // Create RBF kernel and GP
+        auto kernel = std::make_unique<gp::RBFKernel>(1.0, 1.0);
+        auto gp = std::make_shared<gp::GaussianProcess>(std::move(kernel), 1e-6);
         
         // Initialize with some safe data
         Eigen::MatrixXd X_init(1, 1);
         X_init << 0.0;
         Eigen::VectorXd Y_init(1);
         Y_init << 1.0;
-        gp->setData(X_init, Y_init);
+        gp->fit(X_init, Y_init);
         
         std::vector<std::shared_ptr<gp::GaussianProcess>> gps = {gp};
         std::vector<double> fmin = {0.0};  // Safety threshold
