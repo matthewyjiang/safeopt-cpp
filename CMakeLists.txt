@@ -11,6 +11,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3")
 # Find required packages
 find_package(Eigen3 REQUIRED)
 
+find_package(Matplot++ REQUIRED)
+
 # Fetch GP library
 include(FetchContent)
 FetchContent_Declare(
@@ -63,7 +65,7 @@ target_link_libraries(test_safeopt safeopt_cpp)
 add_executable(test_3d_optimization
     tests/test_3d_optimization.cpp
 )
-target_link_libraries(test_3d_optimization safeopt_cpp)
+target_link_libraries(test_3d_optimization safeopt_cpp Matplot++::matplot)
 
 # Add GP demo executable (commented out - file doesn't exist yet)
 # add_executable(test_gp_demo
