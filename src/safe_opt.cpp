@@ -1,5 +1,6 @@
 #include "safeopt/safe_opt.hpp"
 #include "safeopt/utilities.hpp"
+#include "safeopt/visualization.hpp"
 #include <algorithm>
 #include <stdexcept>
 
@@ -16,7 +17,8 @@ SafeOpt::SafeOpt(
     : GaussianProcessOptimization(gps, fmin, beta, 0, threshold, scaling),
       lipschitz_(lipschitz),
       use_lipschitz_(!lipschitz.empty()),
-      best_lower_bound_(-std::numeric_limits<double>::infinity()) {
+      best_lower_bound_(-std::numeric_limits<double>::infinity()),
+      bounds_(bounds) {
     
     setBounds(bounds);
     
@@ -38,7 +40,8 @@ SafeOpt::SafeOpt(
     : GaussianProcessOptimization(gps, fmin, beta_func, 0, threshold, scaling),
       lipschitz_(lipschitz),
       use_lipschitz_(!lipschitz.empty()),
-      best_lower_bound_(-std::numeric_limits<double>::infinity()) {
+      best_lower_bound_(-std::numeric_limits<double>::infinity()),
+      bounds_(bounds) {
     
     setBounds(bounds);
     
@@ -470,6 +473,27 @@ double SafeOpt::getSafeUCB(int point_idx) const {
     } else {
         return -std::numeric_limits<double>::infinity();
     }
+}
+
+void SafeOpt::plot() const {
+    SafeOptVisualizer visualizer;
+    PlotConfig config;
+    config.fmin = fmin_;
+    visualizer.plot(*this, config);
+}
+
+void SafeOpt::plotHistory() const {
+    SafeOptVisualizer visualizer;
+    PlotConfig config;
+    config.fmin = fmin_;
+    visualizer.plot_history(*this, config);
+}
+
+void SafeOpt::plotSafeSet() const {
+    SafeOptVisualizer visualizer;
+    PlotConfig config;
+    config.fmin = fmin_;
+    visualizer.plot_safe_set(*this, config);
 }
 
 } // namespace safeopt

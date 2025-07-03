@@ -33,12 +33,14 @@ add_library(safeopt_cpp
     src/safe_opt.cpp
     src/safe_opt_swarm.cpp
     src/swarm_optimization.cpp
+    src/visualization.cpp
 )
 
 # Link libraries
 target_link_libraries(safeopt_cpp
     Eigen3::Eigen
     gp_lib
+    Matplot++::matplot
 )
 
 # Add executable for examples
@@ -51,6 +53,11 @@ add_executable(safeopt_demo
     examples/comprehensive_demo.cpp
 )
 target_link_libraries(safeopt_demo safeopt_cpp)
+
+add_executable(visualization_example
+    examples/visualization_example.cpp
+)
+target_link_libraries(visualization_example safeopt_cpp)
 
 # Enable testing
 enable_testing()
@@ -67,6 +74,18 @@ add_executable(test_3d_optimization
 )
 target_link_libraries(test_3d_optimization safeopt_cpp Matplot++::matplot)
 
+# Add visualization test
+add_executable(test_visualization
+    tests/test_visualization.cpp
+)
+target_link_libraries(test_visualization safeopt_cpp)
+
+# Add real function optimization test
+add_executable(test_real_function_optimization
+    tests/test_real_function_optimization.cpp
+)
+target_link_libraries(test_real_function_optimization safeopt_cpp)
+
 # Add GP demo executable (commented out - file doesn't exist yet)
 # add_executable(test_gp_demo
 #     test_gp_demo.cpp
@@ -76,6 +95,8 @@ target_link_libraries(test_3d_optimization safeopt_cpp Matplot++::matplot)
 # Add tests
 add_test(NAME SafeOptTests COMMAND test_safeopt)
 add_test(NAME SafeOpt3DTest COMMAND test_3d_optimization)
+add_test(NAME VisualizationTest COMMAND test_visualization)
+add_test(NAME RealFunctionOptimizationTest COMMAND test_real_function_optimization)
 
 # Install targets
 install(TARGETS safeopt_cpp

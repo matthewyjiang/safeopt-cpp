@@ -274,8 +274,8 @@ This is a **fully functional** implementation of the C++ port with the following
 - [x] **Working SafeOpt optimization loop**
 
 ### 🚧 In Progress / TODO
-- [ ] Complete SafeOpt algorithm implementation (Lipschitz bounds, full acquisition functions)
-- [ ] Advanced acquisition functions (UCB, EI, etc.)
+- [x] Complete SafeOpt algorithm implementation (Lipschitz bounds, full acquisition functions)
+- [x] Advanced acquisition functions (UCB, EI, etc.)
 - [ ] Additional kernel types (Matern, Polynomial, etc.)
 - [ ] Contextual optimization support
 - [ ] Performance optimizations

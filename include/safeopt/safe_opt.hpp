@@ -108,11 +108,40 @@ public:
     const Eigen::MatrixXd& getInputs() const { return inputs_; }
 
     /**
+     * @brief Get parameter bounds
+     * 
+     * @return Vector of parameter bounds
+     */
+    const std::vector<std::pair<double, double>>& getBounds() const { return bounds_; }
+
+    /**
+     * @brief Get Gaussian processes
+     * 
+     * @return Vector of Gaussian processes
+     */
+    const std::vector<std::shared_ptr<gp::GaussianProcess>>& getGPs() const { return gps_; }
+
+    /**
      * @brief Set discretized input space
      * 
      * @param inputs Matrix of input points (rows are points)
      */
     void setInputs(const Eigen::MatrixXd& inputs);
+
+    /**
+     * @brief Plot the current state of the optimization
+     */
+    void plot() const;
+
+    /**
+     * @brief Plot optimization history
+     */
+    void plotHistory() const;
+
+    /**
+     * @brief Plot safe set and expanders
+     */
+    void plotSafeSet() const;
 
 protected:
     // Discretized input space
@@ -132,6 +161,9 @@ protected:
     
     // Cached values
     double best_lower_bound_;  // Best lower confidence bound found so far
+    
+    // Parameter bounds
+    std::vector<std::pair<double, double>> bounds_;
 
     /**
      * @brief Initialize the algorithm by computing initial sets
